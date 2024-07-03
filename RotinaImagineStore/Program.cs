@@ -5,8 +5,10 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using RestSharp.Serializers;
 
 namespace RotinaImagineStore
 {
@@ -15,7 +17,8 @@ namespace RotinaImagineStore
         static void Main(string[] args)
         {
             GETVendas();
-
+            GETFornecedores();
+            GETProdutos();
         }
 
         public static void GETVendas()
@@ -23,7 +26,7 @@ namespace RotinaImagineStore
             JsonConversao jsonconv = new JsonConversao();
 
             var client = new RestClient("https://vmpay.vertitecnologia.com.br/api/v1");
-            var request = new RestRequest("/cashless_facts?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI&start_date=2024-07-03&end_date=2024-07-03&page=1&per_page=1000");
+            var request = new RestRequest("/cashless_facts?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI&start_date=2024-07-01&end_date=2024-07-03&page=1&per_page=1000");
             request.AddHeader("Accept", "application/json");
 
             RestResponse response = client.ExecuteGet(request);
@@ -106,7 +109,7 @@ namespace RotinaImagineStore
                                 Console.WriteLine($"A venda com ID '{id}' já existe na base de dados ou o 'manufacturer_id' está vazio.");
                                 continue;
                             }
-                            try { 
+                            try {
                                 using (SqlCommand insertCommand = new SqlCommand(
                                     "INSERT INTO vendas (id, occurred_at, client_id, location_id, machine_id, installation_id, planogram_item_id, good_id, coil, quantity, value, client_name, location_name, machine_model_name, type, " +
                                     "category_id, manufacturer_id, product_name, upc_code, barcode, point_of_sale, equipment_id, equipment_label_number, equipment_serial_number, masked_card_number, number_of_payments, request_number, " +
@@ -154,12 +157,12 @@ namespace RotinaImagineStore
 
                                     insertCommand.ExecuteNonQuery();
 
-                                    
+
                                 }
                                 Console.WriteLine("Carregou!");
                                 Environment.Exit(0);
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 Console.WriteLine($"Erro ao inserir venda com ID '{id}': {ex.Message}");
                             }
@@ -171,8 +174,195 @@ namespace RotinaImagineStore
             {
                 Console.WriteLine($"Erro ao acessar o banco de dados: {ex.Message}");
             }
-            
         }
+
+        public static void GETFornecedores()
+        {
+            JsonConversao jsonconv = new JsonConversao();
+
+            var client = new RestClient("https://vmpay.vertitecnologia.com.br/api/v1");
+            var request = new RestRequest("/manufacturers?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI");
+            request.AddHeader("Accept", "application/json");
+
+            RestResponse response = client.ExecuteGet(request);
+
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                Console.WriteLine("Erro na requisição: " + response.StatusDescription);
+                return;
+            }
+
+            dynamic resultado;
+            try
+            {
+                resultado = JArray.Parse(response.Content);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao converter JSON: {ex.Message}");
+                return;
+            }
+
+            foreach (var info in resultado)
+            {
+                string id = info["id"].ToString();
+                string name = info["name"].ToString();
+
+                try
+                {
+                    using (SqlConnection conn_ds = new SqlConnection("Server=tcp:imaginestore.database.windows.net,1433;Database=imagine;User Id=imaginestore;Password=Sqlis@23is;"))
+                    {
+                        conn_ds.Open();
+                        try
+                        {
+                            using (SqlCommand insertCommand = new SqlCommand("SELECT * from fornecedores where id = '" + id + "'", conn_ds))
+                            {
+                                insertCommand.Parameters.AddWithValue("@id", id);
+                                int count = (int)insertCommand.ExecuteScalar();
+
+                                try
+                                {
+                                    if (count > 0)
+                                    {
+                                        using (SqlCommand updateCmd = new SqlCommand("UPDATE fornecedores SET name = @name WHERE id = @id", conn_ds))
+                                        {
+                                            updateCmd.Parameters.AddWithValue("@name", name);
+                                            updateCmd.Parameters.AddWithValue("@id", id);
+                                            updateCmd.ExecuteNonQuery();
+
+                                            Console.WriteLine("Update Feito!");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        using (SqlCommand insertCmd = new SqlCommand("INSERT INTO fornecedores (id, name) VALUES (@id, @name)", conn_ds))
+                                        {
+                                            insertCmd.Parameters.AddWithValue("@id", id);
+                                            insertCmd.Parameters.AddWithValue("@name", name);
+                                            insertCmd.ExecuteNonQuery();
+
+                                            Console.WriteLine("Inseriu Feito!");
+                                        }
+                                    }
+                                    Console.WriteLine("Funcionou");
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine("Erro ao inserir: " + ex);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Erro ao carregar banco: " + ex);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Erro ao conectar ao banco: " + ex);
+                }
+            }
+        }
+
+        public static void GETProdutos()
+        {
+            JsonConversao jsonconv = new JsonConversao();
+
+            using (SqlConnection conn = new SqlConnection("Server=tcp:imaginestore.database.windows.net,1433;Database=imagine;User Id=imaginestore;Password=Sqlis@23is;"))
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = new SqlCommand("SELECT distinct v.good_id, coil from vendas v left join produtos p on p.id = v.good_id where p.id is null", conn))
+                {
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var client = new RestClient("https://vmpay.vertitecnologia.com.br/api/v1");
+                            var barcodes = reader["coil"].ToString();
+                            var request = new RestRequest($"/products?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI&barcode={barcodes}");
+                            request.AddHeader("Accept", "application/json");
+
+                            RestResponse response = client.Execute(request);
+
+                            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                            {
+                                Console.WriteLine($"Erro na requisição: {response.StatusDescription}");
+                                continue;
+                            }
+
+                            dynamic resultado;
+                            try
+                            {
+                                resultado = JArray.Parse(response.Content);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Erro ao converter JSON: {ex.Message}");
+                                continue;
+                            }
+
+                            foreach (var info in resultado)
+                            {
+                                try
+                                {
+                                    string id = info["id"].ToString();
+                                    string name = info["name"].ToString();
+                                    string type = info["type"].ToString();
+                                    string manufacturer_id = info["manufacturer_id"].ToString();
+                                    string category_id = info["category_id"].ToString();
+                                    string upc_code = info["upc_code"].ToString();
+                                    string barcode = info["barcode"]?.ToString() ?? "";
+                                    string default_price = info["default_price"]?.ToString() ?? "0";
+                                    string image = info["image"]?.ToString() ?? "";
+
+                                    double cost_price;
+                                    if (!double.TryParse(default_price, out cost_price))
+                                    {
+                                        cost_price = 0;
+                                    }
+
+
+                                    using (SqlCommand insertCmd = new SqlCommand("INSERT INTO produtos (id, name, type, manufacturer_id, category_id, upc_code, barcode, default_price, image, create_date) VALUES (@id, @name, @type, @manufacturer_id, @category_id, @upc_code, @barcode, @default_price, @image, GETDATE())", conn))
+                                    {
+                                        insertCmd.Parameters.AddWithValue("@id", id);
+                                        insertCmd.Parameters.AddWithValue("@name", name);
+                                        insertCmd.Parameters.AddWithValue("@type", type);
+                                        insertCmd.Parameters.AddWithValue("@manufacturer_id", manufacturer_id);
+                                        insertCmd.Parameters.AddWithValue("@category_id", category_id);
+                                        insertCmd.Parameters.AddWithValue("@upc_code", upc_code);
+                                        insertCmd.Parameters.AddWithValue("@barcode", barcode);
+                                        insertCmd.Parameters.AddWithValue("@default_price", cost_price);
+                                        insertCmd.Parameters.AddWithValue("@image", image);
+
+                                        int contadorDeErros = 0;
+                                        try
+                                        {
+                                            insertCmd.ExecuteNonQuery();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            contadorDeErros++;
+                                            Console.WriteLine($"Erro {contadorDeErros} ao inserir produto no banco de dados: {ex.Message}");
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Erro ao processar produto: {ex.Message}");
+                                }
+
+                                reader.Close();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+
 
         public class JsonConversao
         {
@@ -208,5 +398,5 @@ namespace RotinaImagineStore
                 }
             }
         }
-    }
+    } 
 }
