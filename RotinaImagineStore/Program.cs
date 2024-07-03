@@ -17,8 +17,8 @@ namespace RotinaImagineStore
         static void Main(string[] args)
         {
             GETVendas();
-            GETFornecedores();
-            GETProdutos();
+            //GETFornecedores();
+            //GETProdutos();
         }
 
         public static void GETVendas()
@@ -26,7 +26,7 @@ namespace RotinaImagineStore
             JsonConversao jsonconv = new JsonConversao();
 
             var client = new RestClient("https://vmpay.vertitecnologia.com.br/api/v1");
-            var request = new RestRequest("/cashless_facts?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI&start_date=2024-07-01&end_date=2024-07-03&page=1&per_page=1000");
+            var request = new RestRequest("/cashless_facts?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI&start_date=2024-06-01&end_date=2024-06-30&page=1&per_page=1000");
             request.AddHeader("Accept", "application/json");
 
             RestResponse response = client.ExecuteGet(request);
