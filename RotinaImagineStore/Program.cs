@@ -27,11 +27,12 @@ namespace RotinaImagineStore
             var client = new RestClient("https://vmpay.vertitecnologia.com.br/api/v1");
             int page = 1;
             int perPage = 1000;
-            int maxPage = 49;
+            int maxPage = 37;
 
             while (page <= maxPage)
             {
-                var request = new RestRequest($"/cashless_facts?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI&start_date=2024-06-01&end_date=2024-06-30&page={page}&per_page={perPage}");
+                var request = new RestRequest($"/cashless_facts?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI&start_date=2024-07-03&end_date=2024-07-09&page={page}&per_page={perPage}");
+
                 request.AddHeader("Accept", "application/json");
 
                 RestResponse response = client.ExecuteGet(request);
@@ -124,7 +125,7 @@ namespace RotinaImagineStore
                                         "@issuer_authorization_code, @machine_model, @planogram_item, @eft_provider, @eft_authorizer, @eft_card_brand, @eft_card_type, @payment_authorizer, @status, GETDATE())", conn_ds))
                                     {
                                         insertCommand.Parameters.AddWithValue("@id", id);
-                                        insertCommand.Parameters.AddWithValue("@occurred_at", occurred_at);
+                                        insertCommand.Parameters.AddWithValue("@occurred_at", Convert.ToDateTime(occurred_at));
                                         insertCommand.Parameters.AddWithValue("@client_id", client_id);
                                         insertCommand.Parameters.AddWithValue("@location_id", location_id);
                                         insertCommand.Parameters.AddWithValue("@machine_id", machine_id);
@@ -133,7 +134,7 @@ namespace RotinaImagineStore
                                         insertCommand.Parameters.AddWithValue("@good_id", good_id);
                                         insertCommand.Parameters.AddWithValue("@coil", barcode);
                                         insertCommand.Parameters.AddWithValue("@quantity", quantity);
-                                        insertCommand.Parameters.AddWithValue("@value", value);
+                                        insertCommand.Parameters.AddWithValue("@value", Convert.ToDouble(value));
                                         insertCommand.Parameters.AddWithValue("@client_name", client_name);
                                         insertCommand.Parameters.AddWithValue("@location_name", location_name);
                                         insertCommand.Parameters.AddWithValue("@machine_model_name", machine_model_id);
