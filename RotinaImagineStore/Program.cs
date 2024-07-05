@@ -27,7 +27,7 @@ namespace RotinaImagineStore
             var client = new RestClient("https://vmpay.vertitecnologia.com.br/api/v1");
             int page = 1;
             int perPage = 1000;
-            int maxPage = 37;
+            int maxPage = 7;
 
             while (page <= maxPage)
             {
