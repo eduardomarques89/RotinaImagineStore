@@ -17,8 +17,8 @@ namespace RotinaImagineStore
         static void Main(string[] args)
         {
             GETVendas();
-            //GETFornecedores();
-            //GETProdutos();
+            GETFornecedores();
+            GETProdutos();
         }
 
         public static void GETVendas()
@@ -27,11 +27,11 @@ namespace RotinaImagineStore
             var client = new RestClient("https://vmpay.vertitecnologia.com.br/api/v1");
             int page = 1;
             int perPage = 1000;
-            int maxPage = 7;
+            int maxPage = 25;
 
             while (page <= maxPage)
             {
-                var request = new RestRequest($"/cashless_facts?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI&start_date=2024-07-03&end_date=2024-07-09&page={page}&per_page={perPage}");
+                var request = new RestRequest($"/cashless_facts?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI&start_date=2024-07-15&end_date=2024-07-22&page={page}&per_page={perPage}");
 
                 request.AddHeader("Accept", "application/json");
 
