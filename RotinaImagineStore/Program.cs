@@ -27,11 +27,11 @@ namespace RotinaImagineStore
             var client = new RestClient("https://vmpay.vertitecnologia.com.br/api/v1");
             int page = 1;
             int perPage = 1000;
-            int maxPage = 25;
+            int maxPage = 30;
 
             while (page <= maxPage)
             {
-                var request = new RestRequest($"/cashless_facts?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI&start_date=2024-07-15&end_date=2024-07-22&page={page}&per_page={perPage}");
+                var request = new RestRequest($"/cashless_facts?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI&start_date=2024-07-25&end_date=2024-07-31&page={page}&per_page={perPage}");
 
                 request.AddHeader("Accept", "application/json");
 
@@ -107,9 +107,7 @@ namespace RotinaImagineStore
                                     continue;
                                 }
 
-                                //int count = (int)selectCommand.ExecuteScalar();
-
-                                if (/*count > 0 ||*/ string.IsNullOrEmpty(manufacturer_id))
+                                if (string.IsNullOrEmpty(manufacturer_id))
                                 {
                                     Console.WriteLine($"A venda com ID '{id}' já existe na base de dados ou o 'manufacturer_id' está vazio.");
                                     continue;
@@ -368,9 +366,6 @@ namespace RotinaImagineStore
                 }
             }
         }
-
-
-
 
         public class JsonConversao
         {
