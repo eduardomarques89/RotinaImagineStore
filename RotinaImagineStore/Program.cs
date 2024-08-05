@@ -17,8 +17,8 @@ namespace RotinaImagineStore
         static void Main(string[] args)
         {
             GETVendas();
-            GETFornecedores();
-            GETProdutos();
+            //GETFornecedores();
+            //GETProdutos();
         }
 
         public static void GETVendas()
@@ -31,7 +31,7 @@ namespace RotinaImagineStore
 
             while (page <= maxPage)
             {
-                var request = new RestRequest($"/cashless_facts?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI&start_date=2024-08-01&end_date=2024-08-05&page={page}&per_page={perPage}");
+                var request = new RestRequest($"/cashless_facts?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI&start_date=2024-08-04&end_date=2024-08-12&page={page}&per_page={perPage}");
 
                 request.AddHeader("Accept", "application/json");
 
