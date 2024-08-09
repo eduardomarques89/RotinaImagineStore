@@ -17,8 +17,8 @@ namespace RotinaImagineStore
         static void Main(string[] args)
         {
             GETVendas();
-            //GETFornecedores();
-            //GETProdutos();
+            GETFornecedores();
+            GETProdutos();
         }
 
         public static void GETVendas()
@@ -27,11 +27,13 @@ namespace RotinaImagineStore
             var client = new RestClient("https://vmpay.vertitecnologia.com.br/api/v1");
             int page = 1;
             int perPage = 1000;
-            int maxPage = 30;
+            int maxPage = 30; 
 
             while (page <= maxPage)
             {
-                var request = new RestRequest($"/cashless_facts?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI&start_date=2024-08-04&end_date=2024-08-12&page={page}&per_page={perPage}");
+                var request = new RestRequest($"/cashless_facts?access_token=04PJ5nF3VnLIfNLJRbqmZkEMhU2VNCClOjPoTPCI&start_date=2024-08-06&end_date=2024-08-12&page={page}&per_page={perPage}");
+
+
 
                 request.AddHeader("Accept", "application/json");
 
@@ -250,7 +252,6 @@ namespace RotinaImagineStore
                                             Console.WriteLine("Inseriu Feito!");
                                         }
                                     }
-                                    Console.WriteLine("Funcionou");
                                 }
                                 catch (Exception ex)
                                 {
@@ -269,6 +270,7 @@ namespace RotinaImagineStore
                     Console.WriteLine("Erro ao conectar ao banco: " + ex);
                 }
             }
+            Console.WriteLine("Processamento concluído!");
         }
 
         public static void GETProdutos()
